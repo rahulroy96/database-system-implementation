@@ -30,3 +30,10 @@
 *.exe
 *.out
 *.app
+
+# data files
+*.bin
+*.metadata
+
+# local testing files
+Makefile_local
