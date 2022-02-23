@@ -9,11 +9,17 @@ endif
 test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o HeapFile.o
 	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o HeapFile.o -lfl
 	
+GTest.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o Gtest.o HeapFile.o
+	$(CC) -o Gtest.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o Gtest.o HeapFile.o -lfl -lgtest
+
 main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o -lfl
 	
 test.o: test.cc
 	$(CC) -g -c test.cc
+
+Gtest.o: Gtest.cc
+	$(CC) -g -c Gtest.cc
 
 main.o: main.cc
 	$(CC) -g -c main.cc

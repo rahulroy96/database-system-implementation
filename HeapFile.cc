@@ -77,7 +77,7 @@ int HeapFile::Open(const char *f_path)
     file->Open(1, (char *)f_path);
     cout << "Length of opened file: " << file->GetLength() << endl;
     readPtr = 0;
-    file->GetPage(readPage, readPtr++);
+    readPage->EmptyItOut();
     writePtr = file->GetLength();
     writePage->EmptyItOut();
     writePageDirty = false;
@@ -91,7 +91,7 @@ void HeapFile::MoveFirst()
 */
 {
     readPtr = 0;
-    file->GetPage(readPage, readPtr++);
+    readPage->EmptyItOut();
 }
 
 int HeapFile::Close()
