@@ -8,7 +8,10 @@ endif
 
 test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o HeapFile.o
 	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o HeapFile.o -lfl
-	
+
+test_heap.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test_heap.o HeapFile.o
+	$(CC) -o test_heap.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test_heap.o HeapFile.o -lfl
+
 GTest.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o Gtest.o HeapFile.o
 	$(CC) -o Gtest.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o Gtest.o HeapFile.o -lfl -lgtest
 
@@ -17,6 +20,9 @@ main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o 
 	
 test.o: test.cc
 	$(CC) -g -c test.cc
+
+test_heap.o: test_heap.cc
+	$(CC) -g -c test_heap.cc
 
 Gtest.o: Gtest.cc
 	$(CC) -g -c Gtest.cc
