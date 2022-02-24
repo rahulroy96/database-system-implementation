@@ -168,4 +168,6 @@ int main(int argc, char *argv[])
 	test1(tindx, runlen);
 
 	cleanup();
+	/* Last thing that main() should do */
+	pthread_exit(NULL);
 }
