@@ -112,7 +112,7 @@ void BigQ ::RunFirstPhase()
 	int capacity = runlen * PAGE_SIZE;
 	int current_size = 0;
 	off_t current_page = 0;
-	Run *run = new Run(runlen, current_page, file, sortorder);
+	Run run(runlen, current_page, file, sortorder);
 	while (true)
 	{
 		Record *rec = new Record;
@@ -128,7 +128,7 @@ void BigQ ::RunFirstPhase()
 		else
 		{
 			runIndices.push_back(current_page);
-			run->SortWrite(records, current_page);
+			run.SortWrite(records, current_page);
 
 			records.push_back(rec);
 			current_size = rec->GetSize();
@@ -136,7 +136,7 @@ void BigQ ::RunFirstPhase()
 		}
 	}
 	runIndices.push_back(current_page);
-	run->SortWrite(records, current_page);
+	run.SortWrite(records, current_page);
 }
 
 void BigQ ::RunSecondPhase()
