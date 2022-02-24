@@ -31,7 +31,7 @@ int Run::GetNext()
 	
 	if (!currentPage->GetFirst(head))
     {
-        if (currentPtr + 1 >= startPtr + runlen)
+        if (currentPtr + 1 >= startPtr + runlen || currentPtr + 1 >= file->GetLength())
         {
             return 0;
         }
