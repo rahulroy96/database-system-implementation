@@ -62,11 +62,9 @@ void Run::SortWrite(vector<Record *> &records, off_t startPtr)
 			currentPage->EmptyItOut();
 			currentPage->Append(rec);
 		}
-		delete rec;
 	}
 	file->AddPage(currentPage, startPtr++);
 	currentPage->EmptyItOut();
-	records.clear();
 }
 
 void *worker(void *arg)
@@ -107,6 +105,7 @@ BigQ::~BigQ()
 
 void BigQ ::RunFirstPhase()
 {
+
 	vector<Record *> records;
 	int capacity = runlen * PAGE_SIZE;
 	int current_size = 0;
@@ -128,6 +127,11 @@ void BigQ ::RunFirstPhase()
 		{
 			runIndices.push_back(current_page);
 			run.SortWrite(records, current_page);
+			for (Record *r : records)
+			{
+				delete r;
+			}
+			records.clear();
 
 			records.push_back(rec);
 			current_size = rec->GetSize();
@@ -136,6 +140,11 @@ void BigQ ::RunFirstPhase()
 	}
 	runIndices.push_back(current_page);
 	run.SortWrite(records, current_page);
+	for (Record *r : records)
+	{
+		delete r;
+	}
+	records.clear();
 }
 
 void BigQ ::RunSecondPhase()
