@@ -28,21 +28,22 @@ void Run::MoveFirst()
 
 int Run::GetNext()
 {
-	
-	if (!currentPage->GetFirst(head))
-    {
-        if (currentPtr + 1 >= startPtr + runlen || currentPtr + 1 >= file->GetLength())
-        {
-            return 0;
-        }
 
-        file->GetPage(currentPage, currentPtr++);
-        return currentPage->GetFirst(head);
-    }
-    return 1;
+	if (!currentPage->GetFirst(head))
+	{
+		if (currentPtr + 1 >= startPtr + runlen || currentPtr + 1 >= file->GetLength())
+		{
+			return 0;
+		}
+
+		file->GetPage(currentPage, currentPtr++);
+		return currentPage->GetFirst(head);
+	}
+	return 1;
 }
 
-void Run::GetHead(Record &rec){
+void Run::GetHead(Record &rec)
+{
 	return rec.Consume(head);
 }
 
@@ -106,8 +107,6 @@ BigQ::~BigQ()
 
 void BigQ ::RunFirstPhase()
 {
-
-	Page *page = new Page();
 	vector<Record *> records;
 	int capacity = runlen * PAGE_SIZE;
 	int current_size = 0;
@@ -141,17 +140,19 @@ void BigQ ::RunFirstPhase()
 
 void BigQ ::RunSecondPhase()
 {
-	auto comparator = [this](Run *left, Run *right) {
-        return comparisonEngine->Compare(left->head, right->head, sortorder) >=0;
-    };
-	priority_queue<Run*, vector<Run*>, decltype(comparator)> pq(comparator);
+	auto comparator = [this](Run *left, Run *right)
+	{
+		return comparisonEngine->Compare(left->head, right->head, sortorder) >= 0;
+	};
+	priority_queue<Run *, vector<Run *>, decltype(comparator)> pq(comparator);
 
-	Run * tempRun;
-	for(auto startId: runIndices){
-		
+	Run *tempRun;
+	for (auto startId : runIndices)
+	{
+
 		// Create a new instance of the run with the start id.
 		tempRun = new Run(runlen, startId, file, sortorder);
-		
+
 		// Move to the first record in the run.
 		tempRun->MoveFirst();
 
@@ -162,9 +163,9 @@ void BigQ ::RunSecondPhase()
 		pq.push(tempRun);
 	}
 
-	
 	Record rec;
-	while(!pq.empty()){
+	while (!pq.empty())
+	{
 
 		// Get the run from the top of the queue.
 		tempRun = pq.top();
@@ -179,11 +180,13 @@ void BigQ ::RunSecondPhase()
 		output->Insert(&rec);
 
 		// Check if there is any more records in this run
-		if(tempRun->GetNext()){
+		if (tempRun->GetNext())
+		{
 			// There are more records so push it back to pq
 			pq.push(tempRun);
 		}
-		else{
+		else
+		{
 			// There are no more records in this run
 			// Delete this run and free the memory.
 			delete tempRun;
