@@ -223,6 +223,9 @@ void BigQ ::RunSecondPhase()
 		}
 	}
 
+	// Delete the temperory file
+	remove((char *)file);
+
 	// Close the output pipe
 	output->ShutDown();
 }
