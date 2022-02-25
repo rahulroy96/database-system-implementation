@@ -40,7 +40,7 @@ class BigQ
 	int runlen;
 
 	File *file;
-	const char *fileName = "temp.bin";
+	const char *fileName = "bigQ.bin";
 	ComparisonEngine *comparisonEngine;
 
 	vector<off_t> runIndices;
