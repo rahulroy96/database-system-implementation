@@ -29,6 +29,8 @@ void *producer(void *arg)
 	myPipe->ShutDown();
 
 	cout << " producer: inserted " << counter << " recs into the pipe\n";
+
+	return nullptr;
 }
 
 void *consumer(void *arg)
@@ -93,6 +95,8 @@ void *consumer(void *arg)
 		cerr << " consumer: " << err << " recs failed sorted order test \n"
 			 << endl;
 	}
+
+	return nullptr;
 }
 
 void test1(int option, int runlen)
@@ -136,6 +140,7 @@ int main(int argc, char *argv[])
 
 	relation *rel_ptr[] = {n, r, c, p, ps, o, li};
 
+
 	int tindx = 0;
 	while (tindx < 1 || tindx > 3)
 	{
@@ -168,6 +173,7 @@ int main(int argc, char *argv[])
 	test1(tindx, runlen);
 
 	cleanup();
+
 	/* Last thing that main() should do */
 	pthread_exit(NULL);
 }

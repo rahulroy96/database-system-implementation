@@ -49,13 +49,15 @@ void Run::GetHead(Record &rec)
 
 void Run::SortWrite(vector<Record *> &records, off_t startPtr)
 {
-
 	// Sort the current record list in ascending order.
 	sort(records.begin(), records.end(), [this](Record *left, Record *right)
 		 { return comparisonEngine->Compare(left, right, sortOrder) < 0; });
 	this->startPtr = startPtr;
-	for (Record *rec : records)
+
+	// Write the recordds to page
+	for (auto &rec : records)
 	{
+		// If page is full write page to file and start new page.
 		if (!currentPage->Append(rec))
 		{
 			file->AddPage(currentPage, startPtr++);
@@ -63,6 +65,8 @@ void Run::SortWrite(vector<Record *> &records, off_t startPtr)
 			currentPage->Append(rec);
 		}
 	}
+
+	// Add the last page which was not full into file.
 	file->AddPage(currentPage, startPtr++);
 	currentPage->EmptyItOut();
 }
@@ -73,6 +77,8 @@ void *worker(void *arg)
 
 	thisPtr->RunFirstPhase();
 	thisPtr->RunSecondPhase();
+
+	return nullptr;
 }
 
 BigQ ::BigQ(Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen)
@@ -105,8 +111,10 @@ BigQ::~BigQ()
 
 void BigQ ::RunFirstPhase()
 {
-
+	// Initialize the records vector
 	vector<Record *> records;
+
+	// Capacity in bytes of run is runlength times PAGE_SIZE
 	int capacity = runlen * PAGE_SIZE;
 	int current_size = 0;
 	off_t current_page = 0;
@@ -114,10 +122,13 @@ void BigQ ::RunFirstPhase()
 	while (true)
 	{
 		Record *rec = new Record;
+
+		// If no more records in the input pipe break
 		if (!input->Remove(rec))
-		{
 			break;
-		}
+
+		// If there is space for the record add the record to
+		// records vector and update the capacity.
 		if (current_size + rec->GetSize() < capacity)
 		{
 			records.push_back(rec);
@@ -125,25 +136,32 @@ void BigQ ::RunFirstPhase()
 		}
 		else
 		{
+			// If no space write the run into memory and start new
+			// Keep track of the start of each run in runIndices
 			runIndices.push_back(current_page);
+
+			// Sort the records and write the page to file.
 			run.SortWrite(records, current_page);
-			for (Record *r : records)
-			{
+
+			// delete the records and clear the array
+			for (auto &r : records)
 				delete r;
-			}
 			records.clear();
 
+			// Write the current record to the array.
 			records.push_back(rec);
 			current_size = rec->GetSize();
 			current_page += runlen;
 		}
 	}
+
+	// Write the last run to file
 	runIndices.push_back(current_page);
 	run.SortWrite(records, current_page);
-	for (Record *r : records)
-	{
+
+	// delete the records and clear the records vector
+	for (auto &r : records)
 		delete r;
-	}
 	records.clear();
 }
 
@@ -153,6 +171,9 @@ void BigQ ::RunSecondPhase()
 	{
 		return comparisonEngine->Compare(left->head, right->head, sortorder) >= 0;
 	};
+
+	// Create the priority queue with comparator function 
+	// comparing the head of the run using given sort order.
 	priority_queue<Run *, vector<Run *>, decltype(comparator)> pq(comparator);
 
 	Run *tempRun;
@@ -202,5 +223,6 @@ void BigQ ::RunSecondPhase()
 		}
 	}
 
+	// Close the output pipe
 	output->ShutDown();
 }
