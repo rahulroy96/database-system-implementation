@@ -29,10 +29,9 @@ void Run::MoveFirst()
 
 int Run::GetNext()
 {
-
 	if (!currentPage->GetFirst(head))
 	{
-		if (currentPtr + 1 >= endPtr || currentPtr + 1 >= file->GetLength())
+		if (currentPtr + 1 > endPtr || currentPtr + 1 >= file->GetLength())
 		{
 			return 0;
 		}
@@ -139,9 +138,6 @@ void BigQ ::RunFirstPhase()
 		// Keep track of the start of each run in runIndices
 		if (currentPageSize + rec->GetSize() > PAGE_SIZE && countPage + 1 >= runlen)
 		{
-
-			cout << currentStartPage << endl;
-
 			// Create a new run
 			tempRun = new Run(runlen, currentStartPage, runlen, file, sortorder);
 
@@ -175,8 +171,6 @@ void BigQ ::RunFirstPhase()
 	}
 
 	// Write the last run to file
-	cout << currentStartPage << endl
-		 << records.size() << endl;
 	tempRun = new Run(runlen, currentStartPage, runlen, file, sortorder);
 	numberOfPages = tempRun->SortWrite(records);
 	runs.push_back(tempRun);
