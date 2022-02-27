@@ -14,21 +14,29 @@ class Run
 	int runlen;
 	File *file;
 	off_t startPtr;
+	off_t endPtr;
 	off_t currentPtr;
 	Page *currentPage;
-	
+
 	ComparisonEngine *comparisonEngine;
 	OrderMaker *sortOrder;
 
 public:
 	Record *head;
-	Run(int runlen, off_t startPtr, File *file, OrderMaker *sortOrder);
+	Run(int runlen, off_t startPtr, off_t endPtr, File *file, OrderMaker *sortOrder);
 	~Run();
 
+	// Move to the first record in the run
 	void MoveFirst();
+
+	// Read the next record as the head of the run
 	int GetNext();
+
+	// Consume the head record and copy it to rec
 	void GetHead(Record &rec);
-	void SortWrite(vector<Record *> &records, off_t startPtr);
+
+	// Sort the given vector and write it to file as pages
+	int SortWrite(vector<Record *> &records);
 };
 
 class BigQ
@@ -43,7 +51,7 @@ class BigQ
 	const char *fileName = "bigQ.bin";
 	ComparisonEngine *comparisonEngine;
 
-	vector<off_t> runIndices;
+	vector<Run *> runs;
 
 public:
 	BigQ(Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen);

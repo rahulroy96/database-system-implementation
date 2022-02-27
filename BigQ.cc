@@ -2,13 +2,14 @@
 #include <queue>
 #include "BigQ.h"
 
-Run ::Run(int runlen, off_t startPtr, File *file, OrderMaker *sortOrder)
+Run ::Run(int runlen, off_t startPtr, off_t endPtr, File *file, OrderMaker *sortOrder)
 {
 	this->runlen = runlen;
 	this->startPtr = startPtr;
 	this->file = file;
 	this->currentPtr = startPtr;
 	this->sortOrder = sortOrder;
+	this->endPtr = endPtr;
 
 	head = new Record();
 	currentPage = new Page();
@@ -31,7 +32,7 @@ int Run::GetNext()
 
 	if (!currentPage->GetFirst(head))
 	{
-		if (currentPtr + 1 >= startPtr + runlen || currentPtr + 1 >= file->GetLength())
+		if (currentPtr + 1 >= endPtr || currentPtr + 1 >= file->GetLength())
 		{
 			return 0;
 		}
@@ -47,28 +48,32 @@ void Run::GetHead(Record &rec)
 	return rec.Consume(head);
 }
 
-void Run::SortWrite(vector<Record *> &records, off_t startPtr)
+// Returns the number of pages used to write
+int Run::SortWrite(vector<Record *> &records)
 {
 	// Sort the current record list in ascending order.
 	sort(records.begin(), records.end(), [this](Record *left, Record *right)
 		 { return comparisonEngine->Compare(left, right, sortOrder) < 0; });
-	this->startPtr = startPtr;
 
-	// Write the recordds to page
+	int writePtr = startPtr;
+	// Write the records to page
 	for (auto &rec : records)
 	{
 		// If page is full write page to file and start new page.
 		if (!currentPage->Append(rec))
 		{
-			file->AddPage(currentPage, startPtr++);
+			file->AddPage(currentPage, writePtr++);
 			currentPage->EmptyItOut();
 			currentPage->Append(rec);
 		}
 	}
 
 	// Add the last page which was not full into file.
-	file->AddPage(currentPage, startPtr++);
+	file->AddPage(currentPage, writePtr++);
+	endPtr = writePtr;
 	currentPage->EmptyItOut();
+
+	return endPtr - startPtr;
 }
 
 void *worker(void *arg)
@@ -114,11 +119,14 @@ void BigQ ::RunFirstPhase()
 	// Initialize the records vector
 	vector<Record *> records;
 
-	// Capacity in bytes of run is runlength times PAGE_SIZE
-	int capacity = runlen * PAGE_SIZE;
-	int current_size = 0;
-	off_t current_page = 0;
-	Run run(runlen, current_page, file, sortorder);
+	int countPage = 0;
+	int currentPageSize = sizeof(int);
+	off_t currentStartPage = 0;
+	off_t numberOfPages = 0;
+	// Run run(runlen, currentStartPage, runlen, file, sortorder);
+
+	Run *tempRun;
+
 	while (true)
 	{
 		Record *rec = new Record;
@@ -127,37 +135,51 @@ void BigQ ::RunFirstPhase()
 		if (!input->Remove(rec))
 			break;
 
-		// If there is space for the record add the record to
-		// records vector and update the capacity.
-		if (current_size + rec->GetSize() < capacity)
+		// If no space write the run into memory and start new
+		// Keep track of the start of each run in runIndices
+		if (currentPageSize + rec->GetSize() > PAGE_SIZE && countPage + 1 >= runlen)
 		{
-			records.push_back(rec);
-			current_size += rec->GetSize();
-		}
-		else
-		{
-			// If no space write the run into memory and start new
-			// Keep track of the start of each run in runIndices
-			runIndices.push_back(current_page);
+
+			cout << currentStartPage << endl;
+
+			// Create a new run
+			tempRun = new Run(runlen, currentStartPage, runlen, file, sortorder);
 
 			// Sort the records and write the page to file.
-			run.SortWrite(records, current_page);
+			// Update the currentStartPage
+			numberOfPages = tempRun->SortWrite(records);
+			runs.push_back(tempRun);
+			currentStartPage += numberOfPages;
 
-			// delete the records and clear the array
+			// Free the memory allocated for records
 			for (auto &r : records)
 				delete r;
+
+			// clear the records array
 			records.clear();
 
-			// Write the current record to the array.
-			records.push_back(rec);
-			current_size = rec->GetSize();
-			current_page += runlen;
+			currentPageSize = sizeof(int);
+			countPage = 0;
 		}
+		else if (currentPageSize + rec->GetSize() > PAGE_SIZE && countPage + 1 < runlen)
+		{
+			// If there is enough space for one more page
+			// increment the page count and set its size to zero.
+			countPage++;
+			currentPageSize = sizeof(int);
+		}
+
+		// Insert the record to the vector and update the page size
+		records.push_back(rec);
+		currentPageSize += rec->GetSize();
 	}
 
 	// Write the last run to file
-	runIndices.push_back(current_page);
-	run.SortWrite(records, current_page);
+	cout << currentStartPage << endl
+		 << records.size() << endl;
+	tempRun = new Run(runlen, currentStartPage, runlen, file, sortorder);
+	numberOfPages = tempRun->SortWrite(records);
+	runs.push_back(tempRun);
 
 	// delete the records and clear the records vector
 	for (auto &r : records)
@@ -172,28 +194,25 @@ void BigQ ::RunSecondPhase()
 		return comparisonEngine->Compare(left->head, right->head, sortorder) >= 0;
 	};
 
-	// Create the priority queue with comparator function 
+	// Create the priority queue with comparator function
 	// comparing the head of the run using given sort order.
 	priority_queue<Run *, vector<Run *>, decltype(comparator)> pq(comparator);
 
-	Run *tempRun;
-	for (auto startId : runIndices)
+	for (auto run : runs)
 	{
-
-		// Create a new instance of the run with the start id.
-		tempRun = new Run(runlen, startId, file, sortorder);
-
 		// Move to the first record in the run.
-		tempRun->MoveFirst();
+		run->MoveFirst();
 
 		// Fetch the first record into the head.
-		tempRun->GetNext();
+		run->GetNext();
 
 		// Push run into the pq.
-		pq.push(tempRun);
+		pq.push(run);
 	}
+	runs.clear();
 
 	Record rec;
+	Run *tempRun;
 	while (!pq.empty())
 	{
 
