@@ -78,6 +78,7 @@ public:
 		sort_pred.GrowFromParseTree(final, schema(), literal); // constructs CNF predicate
 		OrderMaker dummy;
 		sort_pred.GetSortOrders(sortorder, dummy);
+		sortorder.Print();
 	}
 };
 
@@ -102,14 +103,14 @@ void setup()
 	cout << " heap files dir: \t" << dbfile_dir << endl;
 	cout << " \n\n";
 
-	s = new relation(supplier, new Schema(catalog_path, supplier), dbfile_dir);
-	ps = new relation(partsupp, new Schema(catalog_path, partsupp), dbfile_dir);
-	p = new relation(part, new Schema(catalog_path, part), dbfile_dir);
-	n = new relation(nation, new Schema(catalog_path, nation), dbfile_dir);
-	li = new relation(lineitem, new Schema(catalog_path, lineitem), dbfile_dir);
-	r = new relation(region, new Schema(catalog_path, region), dbfile_dir);
-	o = new relation(orders, new Schema(catalog_path, orders), dbfile_dir);
-	c = new relation(customer, new Schema(catalog_path, customer), dbfile_dir);
+	s = new relation(supplier, new Schema(catalog_path, supplier), (char *)dbfile_dir);
+	ps = new relation(partsupp, new Schema(catalog_path, partsupp), (char *)dbfile_dir);
+	p = new relation(part, new Schema(catalog_path, part), (char *)dbfile_dir);
+	n = new relation(nation, new Schema(catalog_path, nation), (char *)dbfile_dir);
+	li = new relation(lineitem, new Schema(catalog_path, lineitem), (char *)dbfile_dir);
+	r = new relation(region, new Schema(catalog_path, region), (char *)dbfile_dir);
+	o = new relation(orders, new Schema(catalog_path, orders), (char *)dbfile_dir);
+	c = new relation(customer, new Schema(catalog_path, customer), (char *)dbfile_dir);
 }
 
 void cleanup()

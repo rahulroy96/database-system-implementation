@@ -2,7 +2,7 @@
 #include <queue>
 #include "BigQ.h"
 
-Run ::Run(int runlen, off_t startPtr, off_t endPtr, File *file, OrderMaker *sortOrder)
+BigQRun ::BigQRun(int runlen, off_t startPtr, off_t endPtr, File *file, OrderMaker *sortOrder)
 {
 	this->runlen = runlen;
 	this->startPtr = startPtr;
@@ -15,19 +15,19 @@ Run ::Run(int runlen, off_t startPtr, off_t endPtr, File *file, OrderMaker *sort
 	currentPage = new Page();
 	comparisonEngine = new ComparisonEngine();
 }
-Run ::~Run()
+BigQRun ::~BigQRun()
 {
 	delete currentPage;
 	delete comparisonEngine;
 	delete head;
 }
 
-void Run::MoveFirst()
+void BigQRun::MoveFirst()
 {
 	currentPtr = startPtr;
 }
 
-int Run::GetNext()
+int BigQRun::LoadNextHead()
 {
 	if (!currentPage->GetFirst(head))
 	{
@@ -42,14 +42,16 @@ int Run::GetNext()
 	return 1;
 }
 
-void Run::GetHead(Record &rec)
+void BigQRun::ConsumeHead(Record &rec)
 {
-	return rec.Consume(head);
+	rec.Consume(head);
 }
 
 // Returns the number of pages used to write
-int Run::SortWrite(vector<Record *> &records)
+int BigQRun::SortWrite(vector<Record *> &records)
 {
+	if (records.size() == 0)
+		return 0;
 	// Sort the current record list in ascending order.
 	sort(records.begin(), records.end(), [this](Record *left, Record *right)
 		 { return comparisonEngine->Compare(left, right, sortOrder) < 0; });
@@ -122,9 +124,8 @@ void BigQ ::RunFirstPhase()
 	int currentPageSize = sizeof(int);
 	off_t currentStartPage = 0;
 	off_t numberOfPages = 0;
-	// Run run(runlen, currentStartPage, runlen, file, sortorder);
 
-	Run *tempRun;
+	BigQRun *tempRun;
 
 	while (true)
 	{
@@ -139,7 +140,7 @@ void BigQ ::RunFirstPhase()
 		if (currentPageSize + rec->GetSize() > PAGE_SIZE && countPage + 1 >= runlen)
 		{
 			// Create a new run
-			tempRun = new Run(runlen, currentStartPage, runlen, file, sortorder);
+			tempRun = new BigQRun(runlen, currentStartPage, runlen, file, sortorder);
 
 			// Sort the records and write the page to file.
 			// Update the currentStartPage
@@ -171,7 +172,7 @@ void BigQ ::RunFirstPhase()
 	}
 
 	// Write the last run to file
-	tempRun = new Run(runlen, currentStartPage, runlen, file, sortorder);
+	tempRun = new BigQRun(runlen, currentStartPage, runlen, file, sortorder);
 	numberOfPages = tempRun->SortWrite(records);
 	runs.push_back(tempRun);
 
@@ -183,14 +184,14 @@ void BigQ ::RunFirstPhase()
 
 void BigQ ::RunSecondPhase()
 {
-	auto comparator = [this](Run *left, Run *right)
+	auto comparator = [this](BigQRun *left, BigQRun *right)
 	{
 		return comparisonEngine->Compare(left->head, right->head, sortorder) >= 0;
 	};
 
 	// Create the priority queue with comparator function
 	// comparing the head of the run using given sort order.
-	priority_queue<Run *, vector<Run *>, decltype(comparator)> pq(comparator);
+	priority_queue<BigQRun *, vector<BigQRun *>, decltype(comparator)> pq(comparator);
 
 	for (auto run : runs)
 	{
@@ -198,7 +199,7 @@ void BigQ ::RunSecondPhase()
 		run->MoveFirst();
 
 		// Fetch the first record into the head.
-		run->GetNext();
+		run->LoadNextHead();
 
 		// Push run into the pq.
 		pq.push(run);
@@ -206,7 +207,7 @@ void BigQ ::RunSecondPhase()
 	runs.clear();
 
 	Record rec;
-	Run *tempRun;
+	BigQRun *tempRun;
 	while (!pq.empty())
 	{
 
@@ -217,13 +218,13 @@ void BigQ ::RunSecondPhase()
 		pq.pop();
 
 		// Copy the head record to record
-		tempRun->GetHead(rec);
+		tempRun->ConsumeHead(rec);
 
 		// Insert the record to the output pipe
 		output->Insert(&rec);
 
 		// Check if there is any more records in this run
-		if (tempRun->GetNext())
+		if (tempRun->LoadNextHead())
 		{
 			// There are more records so push it back to pq
 			pq.push(tempRun);
