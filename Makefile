@@ -12,20 +12,23 @@ test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile
 test_heap.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test_heap.o HeapFile.o
 	$(CC) -o test_heap.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test_heap.o HeapFile.o -lfl
 
-GTest.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o Gtest.o HeapFile.o
-	$(CC) -o Gtest.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o Gtest.o HeapFile.o -lfl -lgtest
+Gtest.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o y.tab.o lex.yy.o Gtest.o HeapFile.o Pipe.o 
+	$(CC) -o Gtest.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o y.tab.o lex.yy.o Gtest.o HeapFile.o Pipe.o -lfl -lgtest
 
 main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o -lfl
 	
-test.o: test.cc
+test.o: test.cc test.h
 	$(CC) -g -c test.cc
 
-test_heap.o: test_heap.cc
+test_heap.o: test_heap.cc test_heap.h
 	$(CC) -g -c test_heap.cc
 
 Gtest.o: Gtest.cc
 	$(CC) -g -c Gtest.cc
+
+BigQ.o: BigQ.cc BigQ.h
+	$(CC) -g -c BigQ.cc
 
 main.o: main.cc
 	$(CC) -g -c main.cc
@@ -36,10 +39,10 @@ Comparison.o: Comparison.cc
 ComparisonEngine.o: ComparisonEngine.cc
 	$(CC) -g -c ComparisonEngine.cc
 	
-DBFile.o: DBFile.cc
+DBFile.o: DBFile.cc DBFile.h
 	$(CC) -g -c DBFile.cc
 
-HeapFile.o: HeapFile.cc
+HeapFile.o: HeapFile.cc HeapFile.h
 	$(CC) -g -c HeapFile.cc
 
 File.o: File.cc

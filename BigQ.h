@@ -9,26 +9,35 @@
 
 using namespace std;
 
-class Run
+class BigQRun
 {
 	int runlen;
 	File *file;
 	off_t startPtr;
+	off_t endPtr;
 	off_t currentPtr;
 	Page *currentPage;
-	
+
 	ComparisonEngine *comparisonEngine;
 	OrderMaker *sortOrder;
 
 public:
 	Record *head;
-	Run(int runlen, off_t startPtr, File *file, OrderMaker *sortOrder);
-	~Run();
+	BigQRun(int runlen, off_t startPtr, off_t endPtr, File *file, OrderMaker *sortOrder);
+	~BigQRun();
 
+	// Move to the first record in the run
 	void MoveFirst();
-	int GetNext();
-	void GetHead(Record &rec);
-	void SortWrite(vector<Record *> &records, off_t startPtr);
+
+	// Read the next record as the head of the run.
+	// Returns 1 on success and 0 if there is no more records
+	int LoadNextHead();
+
+	// Consume the head record and copy it to rec
+	void ConsumeHead(Record &rec);
+
+	// Sort the given vector and write it to file as pages
+	int SortWrite(vector<Record *> &records);
 };
 
 class BigQ
@@ -40,10 +49,10 @@ class BigQ
 	int runlen;
 
 	File *file;
-	const char *fileName = "temp.bin";
+	const char *fileName = "bigQ.bin";
 	ComparisonEngine *comparisonEngine;
 
-	vector<off_t> runIndices;
+	vector<BigQRun *> runs;
 
 public:
 	BigQ(Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen);

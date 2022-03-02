@@ -132,14 +132,13 @@ void test1(int option, int runlen)
 	pthread_join(thread1, NULL);
 	pthread_join(thread2, NULL);
 }
-
+ 
 int main(int argc, char *argv[])
 {
 
 	setup();
 
 	relation *rel_ptr[] = {n, r, c, p, ps, o, li};
-
 
 	int tindx = 0;
 	while (tindx < 1 || tindx > 3)
