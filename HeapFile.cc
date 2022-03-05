@@ -1,5 +1,6 @@
 #include <string.h>
 #include <iostream>
+#include <fstream>
 #include "Record.h"
 #include "Schema.h"
 #include "File.h"
@@ -42,6 +43,21 @@ int HeapFile::Create(const char *f_path, void *startup)
     readPtr = 0;
     writePtr = 0;
     writePageDirty = false;
+
+    // Write filetype to the metadata folder for persistance.
+    string metaDataPath = string(f_path);
+    metaDataPath.append(".metadata");
+    ofstream oFile;
+    oFile.open(metaDataPath.c_str());
+
+    if (!oFile.is_open())
+    {
+        cout << "ERROR: Can't Create meta data file: " << metaDataPath << endl;
+        exit(1);
+    }
+    oFile << heap;
+    oFile.close();
+
     return 1;
 }
 

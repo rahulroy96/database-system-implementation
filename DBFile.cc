@@ -4,6 +4,7 @@
 
 #include "DBFile.h"
 #include "HeapFile.h"
+#include "SortedFile.h"
 #include "Defs.h"
 
 using namespace std;
@@ -20,6 +21,7 @@ DBFile::~DBFile()
 
 int DBFile::Create(const char *f_path, fType f_type, void *startup)
 {
+
     if (f_path == nullptr)
         return 0;
 
@@ -29,7 +31,7 @@ int DBFile::Create(const char *f_path, fType f_type, void *startup)
     }
     else if (f_type == sorted)
     {
-        // TODO sorted
+        file = new SortedFile();
     }
     else if (f_type == tree)
     {
@@ -42,19 +44,6 @@ int DBFile::Create(const char *f_path, fType f_type, void *startup)
         exit(1);
     }
 
-    // Write filetype to the metadata folder for persistance.
-    string metaDataPath = string(f_path);
-    metaDataPath.append(".metadata");
-    ofstream oFile;
-    oFile.open(metaDataPath.c_str());
-    // oFile.open("a.txt");
-    if (!oFile.is_open())
-    {
-        cout << "ERROR: Cant Create meta data file: " << metaDataPath << endl;
-        exit(1);
-    }
-    oFile << heap;
-    oFile.close();
     // use the create function of the filetype class.
     return file->Create(f_path, startup);
 }
@@ -86,7 +75,7 @@ int DBFile::Open(const char *f_path)
     }
     else if (atoi(f_type_string.c_str()) == sorted)
     {
-        // TODO sorted
+        file = new SortedFile();
     }
     else if (atoi(f_type_string.c_str()) == tree)
     {

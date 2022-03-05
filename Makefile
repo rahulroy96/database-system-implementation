@@ -1,4 +1,4 @@
-CC = g++ -O2 -Wno-deprecated -fsanitize=address -fsanitize=undefined -fno-sanitize-recover=all -fsanitize=float-divide-by-zero -fsanitize=float-cast-overflow -fno-sanitize=null -fno-sanitize=alignment
+CC = g++ -std=c++14 -O2 -Wno-deprecated -fsanitize=address -fsanitize=undefined -fno-sanitize-recover=all -fsanitize=float-divide-by-zero -fsanitize=float-cast-overflow -fno-sanitize=null -fno-sanitize=alignment
 
 tag = -i
 
@@ -6,19 +6,25 @@ ifdef linux
 tag = -n
 endif
 
-test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o HeapFile.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o HeapFile.o -lfl -lpthread
+test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test.o 
+	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test.o -ll -lpthread
 
-test_heap.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test_heap.o HeapFile.o
-	$(CC) -o test_heap.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test_heap.o HeapFile.o -lfl
+test_bigq.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test.o 
+	$(CC) -o test_bigq.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test_bigq.o -ll -lpthread
 
-Gtest.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o y.tab.o lex.yy.o Gtest.o HeapFile.o Pipe.o 
-	$(CC) -o Gtest.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o y.tab.o lex.yy.o Gtest.o HeapFile.o Pipe.o -lfl -lgtest
+test_heap.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o HeapFile.o SortedFile.o y.tab.o lex.yy.o test_heap.o 
+	$(CC) -o test_heap.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o HeapFile.o SortedFile.o y.tab.o lex.yy.o test_heap.o -ll -lpthread
+
+Gtest.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o HeapFile.o SortedFile.o BigQ.o y.tab.o lex.yy.o Gtest.o Pipe.o 
+	$(CC) -o Gtest.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o HeapFile.o SortedFile.o BigQ.o y.tab.o lex.yy.o Gtest.o Pipe.o -ll -lgtest
 
 main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o -lfl
 	
 test.o: test.cc test.h
+	$(CC) -g -c test.cc
+
+test_bigq.o: test_bigq.cc test_bigq.h
 	$(CC) -g -c test.cc
 
 test_heap.o: test_heap.cc test_heap.h
@@ -33,10 +39,10 @@ BigQ.o: BigQ.cc BigQ.h
 main.o: main.cc
 	$(CC) -g -c main.cc
 	
-Comparison.o: Comparison.cc
+Comparison.o: Comparison.cc Comparison.h
 	$(CC) -g -c Comparison.cc
 	
-ComparisonEngine.o: ComparisonEngine.cc
+ComparisonEngine.o: ComparisonEngine.cc ComparisonEngine.h
 	$(CC) -g -c ComparisonEngine.cc
 	
 DBFile.o: DBFile.cc DBFile.h
@@ -44,6 +50,9 @@ DBFile.o: DBFile.cc DBFile.h
 
 HeapFile.o: HeapFile.cc HeapFile.h
 	$(CC) -g -c HeapFile.cc
+
+SortedFile.o: SortedFile.cc SortedFile.h
+	$(CC) -g -c SortedFile.cc
 
 File.o: File.cc
 	$(CC) -g -c File.cc

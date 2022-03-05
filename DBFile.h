@@ -3,12 +3,7 @@
 
 #include "DBFileInterface.h"
 
-typedef enum
-{
-	heap,
-	sorted,
-	tree
-} fType;
+
 
 class DBFile
 {
