@@ -9,8 +9,7 @@
 Comparison::Comparison()
 {
 }
- 
- 
+
 Comparison::Comparison(const Comparison &copy_me)
 {
 	operand1 = copy_me.operand1;
@@ -74,6 +73,8 @@ OrderMaker ::OrderMaker(std::string str)
 	{
 		ss.getline(data, 10, ',');
 		whichAtts[i] = atoi(data);
+		ss.getline(data, 10, ',');
+		whichTypes[i] = Type(atoi(data));
 	}
 }
 
@@ -137,7 +138,7 @@ std::string OrderMaker ::toString()
 	str.append(to_string(numAtts));
 	for (int i = 0; i < numAtts; i++)
 	{
-		str.append("," + to_string(whichAtts[i]));
+		str.append("," + to_string(whichAtts[i]) + "," + to_string(whichTypes[i]));
 	}
 	return str;
 }
