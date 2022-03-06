@@ -7,32 +7,48 @@
 #include "Comparison.h"
 #include "ComparisonEngine.h"
 #include "DBFileInterface.h"
+#include "Pipe.h"
+#include "BigQ.h"
+
+#define BUFF_SIZE 100 // pipe cache size
 
 struct SortInfo
 {
-	OrderMaker *myOrder;
+	OrderMaker *sortOrder;
 	int runLength;
+};
+
+enum SortState
+{
+	reading,
+	writing,
+
 };
 
 class SortedFile : public DBFileInterface
 {
 private:
+	// const static int BUF_SIZE = 100;
+	string fileName;
 	File *file;
 
-	OrderMaker *myOrder;
+	OrderMaker *sortOrder;
 	int runLength;
 
-	// SortInfo *sortInfo;
+	SortState state;
+
+	Pipe *input;
+	Pipe *output;
+	BigQ *bq;
 
 	off_t readPtr;
-	// off_t writePtr;
 
 	Page *readPage;
 	Page *writePage;
 
-	// bool writePageDirty;
-
-	// ComparisonEngine *comparisonEngine;
+	// Merge the entries in bigQ and the existing records in file.
+	void MergeBigQ();
+	void InitializeWriting();
 
 public:
 	SortedFile();

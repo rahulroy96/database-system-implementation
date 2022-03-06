@@ -33,10 +33,10 @@ HeapFile::~HeapFile()
 
 int HeapFile::Create(const char *f_path, void *startup)
 /*
-    Open the file.
-    Since its a newly created file, set the writePtr & readPtr to 0.
-    Set the dirty flag to false.
-*/
+ *  Open the file.
+ *  Since its a newly created file, set the writePtr & readPtr to 0.
+ *  Set the dirty flag to false.
+ */
 {
     // Passing 0 as the size of file to Open will create the file.
     file->Open(0, (char *)f_path);
@@ -63,8 +63,8 @@ int HeapFile::Create(const char *f_path, void *startup)
 
 void HeapFile::Load(Schema &f_schema, const char *loadpath)
 /*
-    Bulk load data from file located at path loadpath
-*/
+ *  Bulk load data from file located at path loadpath
+ */
 {
     FILE *tableFile = fopen(loadpath, "r");
     if (tableFile == nullptr)
@@ -83,15 +83,15 @@ void HeapFile::Load(Schema &f_schema, const char *loadpath)
 
 int HeapFile::Open(const char *f_path)
 /*
-    Open the file.
-    Set the readptr to the first record in the file.
-    Set the writeptr to end of the file.
-    Empty Out the write page and set the dirty flag to false.
-*/
+ *  Open the file.
+ *  Set the readptr to the first record in the file.
+ *  Set the writeptr to end of the file.
+ *  Empty Out the write page and set the dirty flag to false.
+ */
 {
     // Passing 0 as the size of file to Open will create the file.
     file->Open(1, (char *)f_path);
-    cout << "Length of opened file: " << file->GetLength() << endl;
+    // cout << "Length of opened file: " << file->GetLength() << endl;
     readPtr = 0;
     readPage->EmptyItOut();
     writePtr = file->GetLength();
@@ -102,9 +102,9 @@ int HeapFile::Open(const char *f_path)
 
 void HeapFile::MoveFirst()
 /*
-    Move the read pointer to point to first page
-    Read the first page
-*/
+ *  Move the read pointer to point to first page
+ *  Read the first page
+ */
 {
     readPtr = 0;
     readPage->EmptyItOut();
@@ -112,9 +112,9 @@ void HeapFile::MoveFirst()
 
 int HeapFile::Close()
 /*
-    Closes the file. 
-    Add the writePage to file if it is dirty.
-*/
+ *  Closes the file.
+ *  Add the writePage to file if it is dirty.
+ */
 {
     if (writePageDirty)
     {
@@ -127,9 +127,9 @@ int HeapFile::Close()
 
 void HeapFile::Add(Record &rec)
 /*
-    Checks if there is enough space inside a page to add the record, 
-    if not, add page to file, empty it out and add the record.
-*/
+ *  Checks if there is enough space inside a page to add the record,
+ *  if not, add page to file, empty it out and add the record.
+ */
 {
     Record recToInsert;
     recToInsert.Consume(&rec);
@@ -144,12 +144,12 @@ void HeapFile::Add(Record &rec)
 
 int HeapFile::GetNext(Record &fetchme)
 /*
-    Populate fetchMe with the next record from the current readPage
-    if no record available in current, read the next page 
-    and return the first record. if no more pages left return 0
-    If writePage is dirty and no other pages left to read, 
-    write it to file 
-*/
+ *  Populate fetchMe with the next record from the current readPage
+ *  if no record available in current, read the next page
+ *  and return the first record. if no more pages left return 0
+ *  If writePage is dirty and no other pages left to read,
+ *  write it to file
+ */
 {
     if (!readPage->GetFirst(&fetchme))
     {
@@ -172,10 +172,10 @@ int HeapFile::GetNext(Record &fetchme)
 
 int HeapFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
 /*
-    Repeatedly fetch records from the page till match is found.
-    Return 1 when comparison engine accepts a record.
-    if no more records left return 0.
-*/
+ *  Repeatedly fetch records from the page till match is found.
+ *  Return 1 when comparison engine accepts a record.
+ *  if no more records left return 0.
+ */
 {
     while (this->GetNext(fetchme))
     {
