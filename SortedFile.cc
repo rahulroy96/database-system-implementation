@@ -49,7 +49,7 @@ int SortedFile::Create(const char *f_path, void *startup)
     readPage->EmptyItOut();
     SortInfo *sortInfo = (struct SortInfo *)startup;
     runLength = sortInfo->runLength;
-    sortOrder = new OrderMaker(sortInfo->sortOrder->ToString);
+    sortOrder = new OrderMaker(sortInfo->sortOrder->ToString());
 
     // Write filetype to the metadata folder for persistance.
     string metaDataPath = string(f_path);
