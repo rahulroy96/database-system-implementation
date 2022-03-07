@@ -33,6 +33,8 @@ private:
 	File *file;
 
 	OrderMaker *sortOrder;
+	OrderMaker *queryOrder;
+
 	int runLength;
 
 	SortState state;
@@ -46,9 +48,20 @@ private:
 	Page *readPage;
 	Page *writePage;
 
-	// Merge the entries in bigQ and the existing records in file.
+	ComparisonEngine * comparisonEngine;
+
+	/*
+	 *  Change the state to reading and shutdown the input pipe
+	 *  Initialize a new instance of file and merge the records from
+	 *  the output pipe with records already in the file.
+	 *  Delete the old instance and make the new instance the file.
+	 */
 	void MergeBigQ();
+
+	// Change the state to writing
+	// Initialize the pipes and bigq for writing
 	void InitializeWriting();
+	void BinarySearch(Record &fetchme, CNF &cnf, Record &literal);
 
 public:
 	SortedFile();

@@ -19,16 +19,20 @@ SortedFile::SortedFile()
     readPage = new Page();
     readPtr = 0;
     sortOrder = nullptr;
+    queryOrder = nullptr;
     state = reading;
+    comparisonEngine = new ComparisonEngine();
 }
 
 SortedFile::~SortedFile()
 {
     delete file;
-    // delete bq;
-    // delete input;
-    // delete output;
     delete readPage;
+    delete comparisonEngine;
+    if (queryOrder != nullptr)
+    {
+        delete queryOrder;
+    }
 }
 
 int SortedFile::Create(const char *f_path, void *startup)
@@ -45,8 +49,6 @@ int SortedFile::Create(const char *f_path, void *startup)
     readPage->EmptyItOut();
     SortInfo *sortInfo = (struct SortInfo *)startup;
     runLength = sortInfo->runLength;
-    // string sortOrderString = sortInfo->sortOrder->toString();
-    // sortOrder = new OrderMaker(sortOrderString);
     sortOrder = sortInfo->sortOrder;
 
     // Write filetype to the metadata folder for persistance.
@@ -62,7 +64,7 @@ int SortedFile::Create(const char *f_path, void *startup)
     }
     oFile << sorted << endl;
     oFile << runLength << endl;
-    oFile << sortOrder->toString() << endl;
+    oFile << sortOrder->ToString() << endl;
     oFile.close();
     return 1;
 }
@@ -73,6 +75,7 @@ int SortedFile::Open(const char *f_path)
  *  Read the SortOrder and RunLength from the meta file
  */
 {
+    // Open the meta data file
     string metaDataPath = string(f_path);
     metaDataPath.append(".metadata");
     ifstream iFile;
@@ -98,11 +101,9 @@ int SortedFile::Open(const char *f_path)
     sortOrder = new OrderMaker(data);
     iFile.close();
 
-    // sortOrder->Print();
-    // cout << sortOrder->toString();
-
-    // Passing 0 as the size of file to Open will create the file.
+    // Passing 1 as the size of file so that new file wont be created.
     file->Open(1, (char *)f_path);
+    fileName = string(f_path);
     return 1;
 }
 
@@ -171,6 +172,12 @@ void SortedFile::MoveFirst()
     if (state == writing)
         MergeBigQ();
 
+    if (queryOrder != nullptr)
+    {
+        delete queryOrder;
+        queryOrder = nullptr;
+    }
+
     readPtr = 0;
     readPage->EmptyItOut();
 }
@@ -201,11 +208,71 @@ int SortedFile::GetNext(Record &fetchme)
 
 int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
 /*
- *  Repeatedly fetch records from the page till match is found.
- *  Return 1 when comparison engine accepts a record.
+ *  If state is not reading, mergeBigQ
+ *  If the queryOrderMaker is null, build the query OrderMaker
+ *  and then do binary search to find the page.
+ *  For subsequent calls, just do linear search till the literal
+ *  record is greater than the fetched reord in queryOrder.
  *  if no more records left return 0.
  */
 {
+    if (state != reading)
+        MergeBigQ();
+
+    cout << "In GetNext" << endl;
+
+    // If query order is not build, its the first call to
+    // this function so do binary search to find the first record
+    if (queryOrder == nullptr)
+    {
+        cout << "Building Query Order" << endl;
+        queryOrder = new OrderMaker();
+        cnf.GetQueryOrders(*sortOrder, *queryOrder);
+        cout << "Num attributes : " << queryOrder->GetNumAttrs() << endl;
+
+        // If query order has some attributes do binary search to find the
+        // page which might have the record that matches cnf
+        if (queryOrder->GetNumAttrs())
+        {
+            off_t left = 0;
+            off_t right = file->GetLength() - 1;
+            cout << "left: " << left << ", right: " << right << endl;
+
+            // Do binary search on the page
+            while (left < right - 1)
+            {
+                // Set the readPtr to
+                readPtr = (left + right) / 2;
+                cout << "left: " << left << ", right: " << right << ", readPtr: " << readPtr << endl;
+
+                file->GetPage(readPage, readPtr);
+                readPage->GetFirst(&fetchme);
+                int comparisonValue = comparisonEngine->Compare(&fetchme, &literal, queryOrder);
+                if (comparisonValue == 0)
+                    break;
+                else if (comparisonValue < 0)
+                    left = readPtr;
+                else
+                    right = readPtr - 1;
+            }
+            if (file->GetLength() > 2 && comparisonEngine->Compare(&fetchme, &literal, &cnf) != 0)
+                return 1;
+        }
+    }
+
+    while (GetNext(fetchme))
+    {
+        cout << "Inside outer while loop " << endl;
+        // If the record mathes the given cnf return 1.
+        if (comparisonEngine->Compare(&fetchme, &literal, &cnf) != 0)
+            return 1;
+
+        // If the literal record is greater than the fetched
+        // record in query order return 0
+        if (queryOrder->GetNumAttrs() &&
+            comparisonEngine->Compare(&fetchme, &literal, queryOrder) > 0)
+            return 0;
+    }
 
     return 0;
 }
@@ -220,6 +287,11 @@ void SortedFile::InitializeWriting()
     input = new Pipe(BUFF_SIZE);
     output = new Pipe(BUFF_SIZE);
     bq = new BigQ(*input, *output, *sortOrder, runLength);
+    if (queryOrder != nullptr)
+    {
+        delete queryOrder;
+        queryOrder = nullptr;
+    }
 }
 
 void SortedFile::MergeBigQ()
@@ -230,7 +302,7 @@ void SortedFile::MergeBigQ()
  *  Delete the old instance and make the new instance the file.
  */
 {
-    // Verify tha current state is writing.
+    // Verify that current state is writing.
     if (state != writing)
         return;
 
@@ -244,7 +316,7 @@ void SortedFile::MergeBigQ()
     // Create the new file instance as heap file
     // since we are inserting one by one.
     DBFile mergeFile;
-    string mergeFileName = fileName.append(".merge");
+    string mergeFileName = fileName + ".merge";
     mergeFile.Create(mergeFileName.c_str(), heap, nullptr);
 
     // Read the first record from the output pipe.
@@ -256,14 +328,12 @@ void SortedFile::MergeBigQ()
     Record fileRecord;
     int fileHasRecord = GetNext(fileRecord);
 
-    ComparisonEngine comparisonEngine;
-
     // Loop until there are records in both the file and output pipe
     while (pipeHasRecord && fileHasRecord)
     {
         // if file records is smaller in given sortorder insert it to mergefile
         // read the next record from the file
-        if (comparisonEngine.Compare(&fileRecord, &pipeRecord, sortOrder) < 0)
+        if (comparisonEngine->Compare(&fileRecord, &pipeRecord, sortOrder) < 0)
         {
             mergeFile.Add(fileRecord);
             fileHasRecord = GetNext(fileRecord);
@@ -295,11 +365,17 @@ void SortedFile::MergeBigQ()
     // Close the merge file.
     // Remove old file and rename new file with original filename.
     mergeFile.Close();
+    file->Close();
     remove(fileName.c_str());
     rename(mergeFileName.c_str(), fileName.c_str());
+    file->Open(1, (char *)fileName.c_str());
 
     // Delete the pipes and queue.
     delete bq;
     delete input;
     delete output;
 }
+
+// void SortedFile::BinarySearch(CNF &cnf)
+// {
+// }

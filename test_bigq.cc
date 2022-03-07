@@ -1,4 +1,4 @@
-#include "test_bigQ.h"
+#include "test_bigq.h"
 #include "BigQ.h"
 #include <pthread.h>
 

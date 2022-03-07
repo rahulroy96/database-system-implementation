@@ -132,7 +132,7 @@ void OrderMaker ::Print()
 	}
 }
 
-std::string OrderMaker ::toString()
+std::string OrderMaker ::ToString()
 {
 	std::string str;
 	str.append(to_string(numAtts));
@@ -141,6 +141,39 @@ std::string OrderMaker ::toString()
 		str.append("," + to_string(whichAtts[i]) + "," + to_string(whichTypes[i]));
 	}
 	return str;
+}
+
+int OrderMaker::GetNumAttrs()
+{
+	return numAtts;
+}
+
+int CNF::GetQueryOrders(OrderMaker &sortOrder, OrderMaker &queryOrder)
+{
+	for (int i = 0; i < sortOrder.numAtts; i++)
+	{
+		for (int j = 0; j < numAnds; j++)
+		{
+			// if we don't have a disjunction of length one,
+			// or if it is not an equality check, then it
+			// can't be acceptable for use with a sort ordering
+
+			if (orLens[i] != 1 || orList[i][0].op != Equals)
+				continue;
+
+			if (orList[j][0].operand2 == Literal &&
+					sortOrder.whichAtts[i] == orList[j][0].whichAtt1 ||
+				orList[j][0].operand1 == Literal &&
+					sortOrder.whichAtts[i] == orList[j][0].whichAtt2)
+			{
+				queryOrder.whichAtts[queryOrder.numAtts] = sortOrder.whichAtts[i];
+				queryOrder.whichTypes[queryOrder.numAtts] = sortOrder.whichTypes[i];
+				queryOrder.numAtts++;
+				break;
+			}
+		}
+	}
+	return queryOrder.numAtts;
 }
 
 int CNF ::GetSortOrders(OrderMaker &left, OrderMaker &right)

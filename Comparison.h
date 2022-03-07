@@ -56,9 +56,14 @@ public:
 	// based upon ALL of their attributes
 	OrderMaker(Schema *schema);
 
+	// Create an OrderMaker from a string where attributes are seperated by ,
+	// Usefull in recreating Sortorder stored in meta file
 	OrderMaker(std::string str);
 
-	std::string toString();
+	// Get the string representation of the Order Maker
+	std::string ToString();
+
+	int GetNumAttrs();
 
 	// print to the screen
 	void Print();
@@ -86,6 +91,11 @@ public:
 	// only if it is impossible to determine an acceptable ordering
 	// for the given comparison
 	int GetSortOrders(OrderMaker &left, OrderMaker &right);
+
+	// This creates a queryOrder that can be used for binary search
+	// to find the first record that satisfies the cnf
+	// in a file which is already sorted by sortOrder
+	int GetQueryOrders(OrderMaker &sortOrder, OrderMaker &queryOrder);
 
 	// print the comparison structure to the screen
 	void Print();
