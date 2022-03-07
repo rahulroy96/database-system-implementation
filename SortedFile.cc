@@ -29,10 +29,10 @@ SortedFile::~SortedFile()
     delete file;
     delete readPage;
     delete comparisonEngine;
+    if (sortOrder != nullptr)
+        delete sortOrder;
     if (queryOrder != nullptr)
-    {
         delete queryOrder;
-    }
 }
 
 int SortedFile::Create(const char *f_path, void *startup)
@@ -49,7 +49,7 @@ int SortedFile::Create(const char *f_path, void *startup)
     readPage->EmptyItOut();
     SortInfo *sortInfo = (struct SortInfo *)startup;
     runLength = sortInfo->runLength;
-    sortOrder = sortInfo->sortOrder;
+    sortOrder = new OrderMaker(sortInfo->sortOrder->ToString);
 
     // Write filetype to the metadata folder for persistance.
     string metaDataPath = string(f_path);
