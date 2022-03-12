@@ -33,9 +33,11 @@ private:
 	File *file;
 
 	OrderMaker *sortOrder;
-	OrderMaker *queryOrder;
+	OrderMaker *querySortOrder;
+	OrderMaker *queryLiteralOrder;
 
 	int runLength;
+	int addCount;
 
 	SortState state;
 
@@ -48,7 +50,7 @@ private:
 	Page *readPage;
 	Page *writePage;
 
-	ComparisonEngine * comparisonEngine;
+	ComparisonEngine *comparisonEngine;
 
 	/*
 	 *  Change the state to reading and shutdown the input pipe
@@ -61,6 +63,7 @@ private:
 	// Change the state to writing
 	// Initialize the pipes and bigq for writing
 	void InitializeWriting();
+	void DeleteQueryOrders();
 	void BinarySearch(Record &fetchme, CNF &cnf, Record &literal);
 
 public:

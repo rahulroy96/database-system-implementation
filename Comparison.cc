@@ -148,10 +148,12 @@ int OrderMaker::GetNumAttrs()
 	return numAtts;
 }
 
-int CNF::GetQueryOrders(OrderMaker &sortOrder, OrderMaker &queryOrder)
+int CNF::GetQueryOrders(OrderMaker &sortOrder, OrderMaker &querySortOrder,
+						OrderMaker &queryLiteralOrder)
 {
 	for (int i = 0; i < sortOrder.numAtts; i++)
 	{
+		bool found = false;
 		for (int j = 0; j < numAnds; j++)
 		{
 			// if we don't have a disjunction of length one,
@@ -162,18 +164,36 @@ int CNF::GetQueryOrders(OrderMaker &sortOrder, OrderMaker &queryOrder)
 				continue;
 
 			if (orList[j][0].operand2 == Literal &&
-					sortOrder.whichAtts[i] == orList[j][0].whichAtt1 ||
-				orList[j][0].operand1 == Literal &&
-					sortOrder.whichAtts[i] == orList[j][0].whichAtt2)
+				sortOrder.whichAtts[i] == orList[j][0].whichAtt1)
 			{
-				queryOrder.whichAtts[queryOrder.numAtts] = sortOrder.whichAtts[i];
-				queryOrder.whichTypes[queryOrder.numAtts] = sortOrder.whichTypes[i];
-				queryOrder.numAtts++;
+				querySortOrder.whichAtts[querySortOrder.numAtts] = orList[j][0].whichAtt1;
+				querySortOrder.whichTypes[querySortOrder.numAtts] = orList[j][0].attType;
+				querySortOrder.numAtts++;
+
+				queryLiteralOrder.whichAtts[queryLiteralOrder.numAtts] = orList[j][0].whichAtt2;
+				queryLiteralOrder.whichTypes[queryLiteralOrder.numAtts] = orList[j][0].attType;
+				queryLiteralOrder.numAtts++;
+				found = true;
+				break;
+			}
+			else if (orList[j][0].operand1 == Literal &&
+					 sortOrder.whichAtts[i] == orList[j][0].whichAtt2)
+			{
+				querySortOrder.whichAtts[querySortOrder.numAtts] = orList[j][0].whichAtt2;
+				querySortOrder.whichTypes[querySortOrder.numAtts] = orList[j][0].attType;
+				querySortOrder.numAtts++;
+
+				queryLiteralOrder.whichAtts[queryLiteralOrder.numAtts] = orList[j][0].whichAtt1;
+				queryLiteralOrder.whichTypes[queryLiteralOrder.numAtts] = orList[j][0].attType;
+				queryLiteralOrder.numAtts++;
+				found = true;
 				break;
 			}
 		}
+		if (!found)
+			break;
 	}
-	return queryOrder.numAtts;
+	return querySortOrder.numAtts;
 }
 
 int CNF ::GetSortOrders(OrderMaker &left, OrderMaker &right)

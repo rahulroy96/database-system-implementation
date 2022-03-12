@@ -13,7 +13,7 @@ int add_data(FILE *src, int numrecs, int &res)
 
 	int proc = 0;
 	int xx = 20000;
-	while ((res = temp.SuckNextRecord(rel->schema(), src)) && ++proc < numrecs)
+	while (++proc < numrecs && (res = temp.SuckNextRecord(rel->schema(), src)))
 	{
 		dbfile.Add(temp);
 		if (proc == xx)
@@ -23,7 +23,7 @@ int add_data(FILE *src, int numrecs, int &res)
 	}
 
 	dbfile.Close();
-	return proc;
+	return proc - 1;
 }
 
 // create a dbfile interactively

@@ -92,10 +92,12 @@ public:
 	// for the given comparison
 	int GetSortOrders(OrderMaker &left, OrderMaker &right);
 
-	// This creates a queryOrder that can be used for binary search
+	// This creates a querySortOrder and queryLiteralOrder
+	// that can be used for binary search
 	// to find the first record that satisfies the cnf
 	// in a file which is already sorted by sortOrder
-	int GetQueryOrders(OrderMaker &sortOrder, OrderMaker &queryOrder);
+	int GetQueryOrders(OrderMaker &sortOrder, OrderMaker &querySortOrder,
+					   OrderMaker &queryLiteralOrder);
 
 	// print the comparison structure to the screen
 	void Print();
