@@ -9,7 +9,7 @@ endif
 test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test.o 
 	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test.o -ll -lpthread
 
-test_bigq.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test.o 
+test_bigq.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test_bigq.o 
 	$(CC) -o test_bigq.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test_bigq.o -ll -lpthread
 
 test_heap.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o HeapFile.o SortedFile.o y.tab.o lex.yy.o test_heap.o 
@@ -19,13 +19,13 @@ Gtest.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o Hea
 	$(CC) -o Gtest.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o HeapFile.o SortedFile.o BigQ.o y.tab.o lex.yy.o Gtest.o Pipe.o -ll -lgtest
 
 main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
-	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o -lfl
+	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o -ll
 	
 test.o: test.cc test.h
 	$(CC) -g -c test.cc
 
 test_bigq.o: test_bigq.cc test_bigq.h
-	$(CC) -g -c test.cc
+	$(CC) -g -c test_bigq.cc
 
 test_heap.o: test_heap.cc test_heap.h
 	$(CC) -g -c test_heap.cc
