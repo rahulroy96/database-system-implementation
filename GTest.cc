@@ -7,13 +7,13 @@ const char *catalog_path = "catalog";
 const char *tpch_dir = "../tpch-dbgen/"; // dir where dbgen tpch files (extension *.tbl) can be found
 const char *dbfile_dir = "dbfile_dir/";
 
-TEST(DBFile, CreateNegative)
+TEST(HeapFile, CreateNegative)
 {
     DBFile dbFile;
     ASSERT_EQ(dbFile.Create(nullptr, heap, nullptr), 0);
 }
 
-TEST(DBFile, CreatePositive)
+TEST(HeapFile, CreatePositive)
 {
     DBFile dbFile;
     ASSERT_EQ(dbFile.Create("test.bin", heap, nullptr), 1);
@@ -22,20 +22,19 @@ TEST(DBFile, CreatePositive)
     ASSERT_TRUE(f != nullptr);
 }
 
-TEST(DBFile, OpenNegative)
+TEST(HeapFile, OpenNegative)
 {
     DBFile dbFile;
     ASSERT_EQ(dbFile.Open(nullptr), 0);
 }
 
-TEST(DBFile, OpenPositive)
+TEST(HeapFile, OpenPositive)
 {
     DBFile dbFile;
     ASSERT_EQ(dbFile.Open("test.bin"), 1);
     FILE *f = fopen("test.bin", "r");
     ASSERT_TRUE(f != nullptr);
 }
-
 
 TEST(BigQRun, SortWriteEmpty)
 {
@@ -45,7 +44,6 @@ TEST(BigQRun, SortWriteEmpty)
     vector<Record *> records;
     ASSERT_EQ(run.SortWrite(records), 0);
 }
-
 
 TEST(BigQRun, SortWriteSingle)
 {
@@ -59,8 +57,8 @@ TEST(BigQRun, SortWriteSingle)
     char rpath[100];
     sprintf(rpath, "%s%s.bin", dbfile_dir, "nation");
     DBFile dbfile;
-	dbfile.Open(rpath);
-	dbfile.MoveFirst();
+    dbfile.Open(rpath);
+    dbfile.MoveFirst();
     dbfile.GetNext(*testRecord);
     records.push_back(testRecord);
     ASSERT_EQ(run.SortWrite(records), 1);
@@ -81,15 +79,14 @@ TEST(BigQRun, LoadNextHeadPositive)
     char rpath[100];
     sprintf(rpath, "%s%s.bin", dbfile_dir, "nation");
     DBFile dbfile;
-	dbfile.Open(rpath);
-	dbfile.MoveFirst();
+    dbfile.Open(rpath);
+    dbfile.MoveFirst();
     dbfile.GetNext(*testRecord);
     records.push_back(testRecord);
     ASSERT_EQ(run.SortWrite(records), 1);
     run.MoveFirst();
     ASSERT_EQ(run.LoadNextHead(), 1);
 }
-
 
 TEST(BigQRun, LoadNextHeadNegative)
 {
@@ -99,8 +96,42 @@ TEST(BigQRun, LoadNextHeadNegative)
     ASSERT_EQ(run.LoadNextHead(), 0);
 }
 
+TEST(SortedFile, CreateNegative)
+{
+    DBFile dbFile;
+    ASSERT_EQ(dbFile.Create(nullptr, sorted, nullptr), 0);
+}
 
+TEST(SortedFile, CreatePositive)
+{
+    DBFile dbFile;
 
+    int runlen = 10;
+    OrderMaker o("1,1,0");
+    struct
+    {
+        OrderMaker *o;
+        int l;
+    } startup = {&o, runlen};
+    ASSERT_EQ(dbFile.Create("test.bin", sorted, &startup), 1);
+
+    FILE *f = fopen("test.bin", "r");
+    ASSERT_TRUE(f != nullptr);
+}
+
+TEST(SortedFile, OpenNegative)
+{
+    DBFile dbFile;
+    ASSERT_EQ(dbFile.Open(nullptr), 0);
+}
+
+TEST(SortedFile, OpenPositive)
+{
+    DBFile dbFile;
+    ASSERT_EQ(dbFile.Open("test.bin"), 1);
+    FILE *f = fopen("test.bin", "r");
+    ASSERT_TRUE(f != nullptr);
+}
 
 int main(int argc, char **argv)
 {

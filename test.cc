@@ -60,7 +60,7 @@ void test1()
 	int proc = 1, res = 1, tot = 0;
 	while (proc && res)
 	{
-		int x = 1;
+		int x = 2;
 		while (x < 1 || x > 3)
 		{
 			cout << "\n select option for : " << rel->path() << endl;

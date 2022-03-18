@@ -110,6 +110,19 @@ int SortedFile::Open(const char *f_path)
     return 1;
 }
 
+int SortedFile::Close()
+/*
+ *  Closes the file.
+ *  Merge the bigQ if the state is writing.
+ */
+{
+    // cout << "addcount: " << addCount << endl;
+    if (state == writing)
+        MergeBigQ();
+
+    return file->Close();
+}
+
 void SortedFile::Load(Schema &f_schema, const char *loadpath)
 /*
  *  Bulk load data from file located at path loadpath.
@@ -154,23 +167,11 @@ void SortedFile::Add(Record &rec)
     input->Insert(&recToInsert);
 }
 
-int SortedFile::Close()
-/*
- *  Closes the file.
- *  Merge the bigQ if the state is writing.
- */
-{
-    cout << "addcount: " << addCount << endl;
-    if (state == writing)
-        MergeBigQ();
-
-    return file->Close();
-}
-
 void SortedFile::MoveFirst()
 /*
  *  Move the read pointer to point to first page
  *  Read the first page
+ *  If current state is writing, Merge the records in output pipe
  */
 {
     if (state == writing)
@@ -188,8 +189,6 @@ int SortedFile::GetNext(Record &fetchme)
  *  Populate fetchMe with the next record from the current readPage
  *  if no record available in current, read the next page
  *  and return the first record. if no more pages left return 0
- *  If writePage is dirty and no other pages left to read,
- *  write it to file
  */
 {
     if (state != reading)
@@ -210,7 +209,7 @@ int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
 /*
  *  If state is not reading, mergeBigQ
  *  If the queryOrderMaker is null, build the query OrderMaker
- *  and then do binary search to find the page.
+ *  and then do binary search to find the first page.
  *  For subsequent calls, just do linear search till the literal
  *  record is greater than the fetched reord in queryOrder.
  *  if no more records left return 0.
@@ -223,11 +222,10 @@ int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
     // this function so do binary search to find the first record
     if (querySortOrder == nullptr)
     {
-        cout << "Building Query Order" << endl;
+        // cout << "Building Query Order" << endl;
         querySortOrder = new OrderMaker();
         queryLiteralOrder = new OrderMaker();
         cnf.GetQueryOrders(*sortOrder, *querySortOrder, *queryLiteralOrder);
-        // cout << "Num attributes : " << querySortOrder->GetNumAttrs() << endl;
 
         // If query order has some attributes do binary search to find the
         // page which might have the record that matches cnf
@@ -377,7 +375,6 @@ void SortedFile::MergeBigQ()
 
     // Move the read pointer back to first record.
     MoveFirst();
-    cout << "count: " << count << ", pipecount: " << pipeCount << ", filecount: " << fileCount << endl;
 
     // Close the merge file.
     // Remove old file and rename new file with original filename.
