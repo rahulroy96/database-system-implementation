@@ -95,10 +95,13 @@ BigQ ::BigQ(Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen)
 	this->sortorder = &sortorder;
 	this->runlen = runlen;
 
-	file = new File();
-	file->Open(0, (char *)fileName);
 
 	pthread_t thread;
+	file = new File();
+	fileName = new char[100];
+    sprintf(fileName, "bigQ_%d.bin", thread);
+	file->Open(0, (char *)fileName);
+
 	comparisonEngine = new ComparisonEngine();
 	int rc = pthread_create(&thread, NULL, worker, (void *)this);
 	if (rc)
@@ -239,6 +242,7 @@ void BigQ ::RunSecondPhase()
 
 	// Delete the temperory file
 	remove((char *)file);
+	remove(fileName);
 
 	// Close the output pipe
 	output->ShutDown();

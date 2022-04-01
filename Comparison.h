@@ -63,7 +63,11 @@ public:
 	// Get the string representation of the Order Maker
 	std::string ToString();
 
-	int GetNumAttrs();
+	// Returns the attribute index used in the order maker
+	int* GetWhichAtts();
+
+	// Returns the number of attributes in the order maker
+	int GetNumAtts();
 
 	// print to the screen
 	void Print();

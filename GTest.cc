@@ -49,7 +49,7 @@ TEST(BigQRun, SortWriteSingle)
 {
     File *file = new File();
     file->Open(0, (char *)"bigQTest.bin");
-    Schema nationSchema(catalog_path, "nation");
+    Schema nationSchema((char *)catalog_path, "nation");
     OrderMaker sortorder(&nationSchema);
     BigQRun run(10, 0, 10, file, &sortorder);
     vector<Record *> records;
@@ -71,7 +71,7 @@ TEST(BigQRun, LoadNextHeadPositive)
 {
     File *file = new File();
     file->Open(0, (char *)"bigQTest.bin");
-    Schema nationSchema(catalog_path, "nation");
+    Schema nationSchema((char *)catalog_path, "nation");
     OrderMaker sortorder(&nationSchema);
     BigQRun run(10, 0, 10, file, &sortorder);
     vector<Record *> records;

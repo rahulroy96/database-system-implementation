@@ -49,7 +49,7 @@ class BigQ
 	int runlen;
 
 	File *file;
-	const char *fileName = "bigQ.bin";
+	char *fileName;
 	ComparisonEngine *comparisonEngine;
 
 	vector<BigQRun *> runs;

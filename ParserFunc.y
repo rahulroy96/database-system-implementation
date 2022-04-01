@@ -2,11 +2,12 @@
 %{
 
 	#include "ParseTree.h" 
+	#include "ParseFunc.h"
 	#include <stdio.h>
 	#include <string.h>
 	#include <stdlib.h>
 	#include <iostream>
-
+	
 	extern "C" int yyfunclex();
 	extern "C" int yyfuncparse();
 	extern "C" void yyfuncerror(char *s);

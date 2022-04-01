@@ -6,11 +6,11 @@ ifdef linux
 tag = -n
 endif
 
-test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o RelOp.o Function.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o lex.yyfunc.o yyfunc.tab.o test.o 
+test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o RelOp.o Function.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o  test.o 
 	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o RelOp.o Function.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o test.o -ll -lpthread
 
 test_sorted.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test_sorted.o 
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test_sorted.o -ll -lpthread
+	$(CC) -o test_sorted.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test_sorted.o -ll -lpthread
 
 test_bigq.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test_bigq.o 
 	$(CC) -o test_bigq.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o HeapFile.o SortedFile.o Pipe.o y.tab.o lex.yy.o test_bigq.o -ll -lpthread
@@ -72,8 +72,6 @@ File.o: File.cc
 Record.o: Record.cc
 	$(CC) -g -c Record.cc
 
-
-
 Schema.o: Schema.cc
 	$(CC) -g -c Schema.cc
 	
@@ -84,7 +82,7 @@ y.tab.o: Parser.y
 
 yyfunc.tab.o: ParserFunc.y
 	yacc -p "yyfunc" -b "yyfunc" -d ParserFunc.y
-	#sed $(tag) -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/"  yyfunc.tab.c 
+	sed $(tag) -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/"  yyfunc.tab.c 
 	g++ -c yyfunc.tab.c
 
 lex.yy.o: Lexer.l

@@ -110,3 +110,12 @@ int DBFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
 {
     return file->GetNext(fetchme, cnf, literal);
 }
+
+int DBFile::Remove(char *filename)
+{
+    string metaDataPath = string(filename);
+    metaDataPath.append(".metadata");
+    remove(metaDataPath.c_str());
+    remove(filename);
+    return 1;
+}
