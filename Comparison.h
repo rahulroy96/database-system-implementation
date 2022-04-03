@@ -96,6 +96,11 @@ public:
 	// for the given comparison
 	int GetSortOrders(OrderMaker &left, OrderMaker &right);
 
+	// this returns an instance of the OrderMaker class that
+	// allows the CNF to be implemented sort based algorithms
+	// on a single table
+	int GetSortOrders(OrderMaker &left);
+
 	// This creates a querySortOrder and queryLiteralOrder
 	// that can be used for binary search
 	// to find the first record that satisfies the cnf

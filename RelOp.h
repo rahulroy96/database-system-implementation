@@ -103,13 +103,9 @@ class Join : public RelationalOp
 	OrderMaker *sortOrderR;
 
 	int runLength;
-	int numAttsL;
-	int numAttsR;
-	int *attsToKeep;
 
 public:
-	void Run(Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal,
-			 Schema &leftSchema, Schema &rightSchema);
+	void Run(Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal);
 	void WaitUntilDone();
 	void Use_n_Pages(int n);
 

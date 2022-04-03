@@ -28,16 +28,12 @@ void SelectFile::Run(DBFile &inFile, Pipe &outPipe, CNF &selOp, Record &literal)
 void SelectFile::Execute()
 {
 	inFile->MoveFirst();
-	int count = 0;
 	while (inFile->GetNext(*buffer, *selOp, *literal))
 	{
-		// cout << "Inside loop, before output insert, Select File" << endl;
 		outPipe->Insert(buffer);
-		// cout << "Inside loop, after output insert, Select File " << ++count << endl;
 	}
 	outPipe->ShutDown();
 
-	cout << "Done Select File" << endl;
 }
 
 void SelectFile::WaitUntilDone()
@@ -85,7 +81,6 @@ void SelectPipe::Execute()
 			outPipe->Insert(buffer);
 	}
 	outPipe->ShutDown();
-	cout << "Done Select Pipe" << endl;
 }
 
 void SelectPipe::WaitUntilDone()
@@ -129,7 +124,6 @@ void Project::Execute()
 		outPipe->Insert(buffer);
 	}
 	outPipe->ShutDown();
-	cout << "Done Projection" << endl;
 }
 
 void Project::WaitUntilDone()
@@ -185,7 +179,6 @@ void Join::Execute()
 	}
 
 	outPipe->ShutDown();
-	cout << "Done Join" << endl;
 }
 
 void Join::SortedMergeJoin()
@@ -373,7 +366,6 @@ void DuplicateRemoval::Run(Pipe &inPipe, Pipe &outPipe, Schema &mySchema)
 
 void DuplicateRemoval::Execute()
 {
-	cout << "Executing Duplicate Removal" << endl;
 	int BUFF_SIZE = 100;
 	Pipe outBigQPipe(BUFF_SIZE);
 	OrderMaker sortOrder(mySchema);
@@ -397,7 +389,6 @@ void DuplicateRemoval::Execute()
 		}
 	}
 	outPipe->ShutDown();
-	cout << "Done Duplicate Removal" << endl;
 }
 
 void DuplicateRemoval::WaitUntilDone()
@@ -474,7 +465,6 @@ void Sum::Execute()
 	buffer->ComposeRecord(&sumSchema, (char *)resultString.c_str());
 	outPipe->Insert(buffer);
 	outPipe->ShutDown();
-	cout << "Sum Done" << endl;
 }
 
 void Sum::WaitUntilDone()
@@ -600,7 +590,7 @@ void GroupBy::Execute()
 	outPipe->Insert(outRecord);
 
 	outPipe->ShutDown();
-	cout << "Done GroupBy" << endl;
+
 }
 
 void GroupBy::WaitUntilDone()

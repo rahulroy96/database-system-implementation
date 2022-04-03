@@ -73,6 +73,9 @@ public:
 	// Get the size of the record in bytes
 	int GetSize();
 
+	// Get the number of attributes in the record
+	int GetNumAtts();
+
 	// Compose a record from the string representation
 	void ComposeRecord(Schema *mySchema, char *attrValues);
 };

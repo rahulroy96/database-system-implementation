@@ -205,8 +205,6 @@ void q4()
 	Record lit_p_ps;
 	get_cnf("(s_suppkey = ps_suppkey)", s->schema(), ps->schema(), cnf_p_ps, lit_p_ps);
 
-	cout << "s->schema(), ps->schema()," << s->schema()->GetNumAtts() << ", " << ps->schema()->GetNumAtts() << endl;
-
 	int outAtts = sAtts + psAtts;
 	Attribute ps_supplycost = {"ps_supplycost", Double};
 	Attribute joinatt[] = {IA, SA, SA, IA, SA, DA, SA, IA, IA, IA, ps_supplycost, SA};
