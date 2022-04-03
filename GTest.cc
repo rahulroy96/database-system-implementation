@@ -2,6 +2,7 @@
 
 #include "DBFile.h"
 #include "BigQ.h"
+#include "RelOp.h"
 
 const char *catalog_path = "catalog";
 const char *tpch_dir = "../tpch-dbgen/"; // dir where dbgen tpch files (extension *.tbl) can be found
@@ -126,6 +127,18 @@ TEST(SortedFile, OpenNegative)
 }
 
 TEST(SortedFile, OpenPositive)
+{
+    DBFile dbFile;
+    ASSERT_EQ(dbFile.Open("test.bin"), 1);
+    FILE *f = fopen("test.bin", "r");
+    ASSERT_TRUE(f != nullptr);
+}
+
+Attribute IA = {"int", Int};
+Attribute SA = {"string", String};
+Attribute DA = {"double", Double};
+
+TEST(RelOps, OpenPositive)
 {
     DBFile dbFile;
     ASSERT_EQ(dbFile.Open("test.bin"), 1);

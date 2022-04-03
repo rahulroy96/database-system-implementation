@@ -63,7 +63,6 @@ int rAtts = 3;
 
 void init_SF_ps(char *pred_str, int numpgs)
 {
-	cout << ps->path() << endl;
 	if (!dbf_ps.Open(ps->path()))
 	{
 		cout << "Couldn't Open the DBFile" << endl;
@@ -206,6 +205,8 @@ void q4()
 	Record lit_p_ps;
 	get_cnf("(s_suppkey = ps_suppkey)", s->schema(), ps->schema(), cnf_p_ps, lit_p_ps);
 
+	cout << "s->schema(), ps->schema()," << s->schema()->GetNumAtts() << ", " << ps->schema()->GetNumAtts() << endl;
+
 	int outAtts = sAtts + psAtts;
 	Attribute ps_supplycost = {"ps_supplycost", Double};
 	Attribute joinatt[] = {IA, SA, SA, IA, SA, DA, SA, IA, IA, IA, ps_supplycost, SA};
@@ -221,7 +222,7 @@ void q4()
 	T.Use_n_Pages(1);
 
 	SF_ps.Run(dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
-	J.Run(_s, _ps, _s_ps, cnf_p_ps, lit_p_ps, *s->schema(), *ps->schema());
+	J.Run(_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
 	T.Run(_s_ps, _out, func);
 
 	SF_ps.WaitUntilDone();
@@ -304,16 +305,19 @@ void q6()
 
 	GroupBy G;
 	// _s (input pipe)
-	Pipe _out(1);
+	Pipe _out(100);
 	Function func;
 	char *str_sum = "(ps_supplycost)";
 	get_cnf(str_sum, &join_sch, func);
 	func.Print();
-	OrderMaker grp_order(&join_sch);
+	char *str_grp_order = "(s_nationkey)";
+	OrderMaker grp_order;
+
+	get_sort_order(str_grp_order, &join_sch, grp_order);
 	G.Use_n_Pages(1);
 
 	SF_ps.Run(dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
-	J.Run(_s, _ps, _s_ps, cnf_p_ps, lit_p_ps, *s->schema(), *ps->schema());
+	J.Run(_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
 	G.Run(_s_ps, _out, grp_order, func);
 
 	SF_ps.WaitUntilDone();

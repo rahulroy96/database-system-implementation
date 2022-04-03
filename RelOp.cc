@@ -147,8 +147,7 @@ void *Join::EntryPoint(void *arg)
 	return nullptr;
 }
 
-void Join::Run(Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal,
-			   Schema &leftSchema, Schema &rightSchema)
+void Join::Run(Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal)
 {
 	this->inPipeL = &inPipeL;
 	this->inPipeR = &inPipeR;
@@ -163,14 +162,6 @@ void Join::Run(Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &
 	sortOrderL = new OrderMaker();
 	sortOrderR = new OrderMaker();
 	runLength = 10;
-
-	numAttsL = leftSchema.GetNumAtts();
-	numAttsR = rightSchema.GetNumAtts();
-	attsToKeep = new int[numAttsL + numAttsR];
-	for (int i = 0; i < numAttsL; i++)
-		attsToKeep[i] = i;
-	for (int i = 0; i < numAttsR; i++)
-		attsToKeep[i + numAttsL] = i;
 
 	int rc = pthread_create(&thread, NULL, EntryPoint, (void *)this);
 	if (rc)
@@ -213,6 +204,20 @@ void Join::SortedMergeJoin()
 	Record *temp;
 	vector<Record *> left_vector;
 	vector<Record *> right_vector;
+	int numAttsL = 0;
+	int numAttsR = 0;
+	int *attsToKeep;
+
+	if (nextAvailable)
+	{
+		numAttsL = bufferL->GetNumAtts();
+		numAttsR = bufferR->GetNumAtts();
+		attsToKeep = new int[numAttsL + numAttsR];
+		for (int i = 0; i < numAttsL; i++)
+			attsToKeep[i] = i;
+		for (int i = 0; i < numAttsR; i++)
+			attsToKeep[i + numAttsL] = i;
+	}
 	while (nextAvailable)
 	{
 		int compResult = comparisonEngine.Compare(bufferL, sortOrderL, bufferR, sortOrderR);
@@ -296,12 +301,28 @@ void Join::BlockNestedLoopJoin()
 	while (inPipeL->Remove(bufferL))
 		tempFile.Add(*bufferL);
 
+	int numAttsL = 0;
+	int numAttsR = 0;
+	int *attsToKeep;
+	bool shouldCalculateNumAttr = true;
 	ComparisonEngine comparisonEngine;
 	while (inPipeR->Remove(bufferR))
 	{
 		tempFile.MoveFirst();
 		while (tempFile.GetNext(*bufferL))
 		{
+
+			if (shouldCalculateNumAttr)
+			{
+				shouldCalculateNumAttr = false;
+				numAttsL = bufferL->GetNumAtts();
+				numAttsR = bufferR->GetNumAtts();
+				attsToKeep = new int[numAttsL + numAttsR];
+				for (int i = 0; i < numAttsL; i++)
+					attsToKeep[i] = i;
+				for (int i = 0; i < numAttsR; i++)
+					attsToKeep[i + numAttsL] = i;
+			}
 			if (comparisonEngine.Compare(bufferL, bufferR, literal, selOp))
 			{
 				mergedRecord->MergeRecords(bufferL, bufferR, numAttsL, numAttsR,
@@ -505,29 +526,38 @@ void GroupBy::Execute()
 	Record *sumRecord = new Record();
 	Record *outRecord = new Record();
 
-	bool shouldIterate = true;
-	if (!outBigQPipe.Remove(current))
-		shouldIterate = false;
-
-	int intSum = 0;
-	int finalIntSum = 0;
-	double doubleSum = 0.0;
-	double finalDoubleSum = 0.0;
 	char *sumaAtrName = "sum";
 	char *sumSchemaName = "sumSchema";
 	Type returnType = computeMe->GetReturnType();
 	Attribute sumAttribute = {sumaAtrName, returnType};
 	Schema sumSchema(sumSchemaName, 1, &sumAttribute);
+
+	bool shouldIterate = true;
+	if (!outBigQPipe.Remove(current))
+		shouldIterate = false;
+
 	int numAttsRecord;
-	int numGroupAtts = groupAtts->GetNumAtts();
-	int *groupAttsIndexes = groupAtts->GetWhichAtts();
-	int *attsToKeep = new int[1 + numGroupAtts];
-	attsToKeep[0] = 0;
-	for (int i = 0; i < numGroupAtts; i++)
-		attsToKeep[i + 1] = groupAttsIndexes[i];
+	int numGroupAtts;
+	int *groupAttsIndexes;
+	int *attsToKeep;
+	if (shouldIterate)
+	{
+		numAttsRecord = current->GetNumAtts();
+		numGroupAtts = groupAtts->GetNumAtts();
+		groupAttsIndexes = groupAtts->GetWhichAtts();
+		attsToKeep = new int[1 + numGroupAtts];
+		attsToKeep[0] = 0;
+		for (int i = 0; i < numGroupAtts; i++)
+			attsToKeep[i + 1] = groupAttsIndexes[i];
+	}
+
+	int finalIntSum = 0;
+	double finalDoubleSum = 0.0;
 
 	while (shouldIterate)
 	{
+		int intSum = 0;
+		double doubleSum = 0.0;
 		computeMe->Apply(*current, intSum, doubleSum);
 		if (returnType == Int)
 			finalIntSum += intSum;
@@ -551,6 +581,8 @@ void GroupBy::Execute()
 			sumRecord->ComposeRecord(&sumSchema, charsRes);
 			outRecord->MergeRecords(sumRecord, prev, 1, numAttsRecord, attsToKeep, numGroupAtts + 1, 1);
 			outPipe->Insert(outRecord);
+			finalIntSum = 0;
+			finalDoubleSum = 0.0;
 		}
 	}
 
@@ -568,6 +600,7 @@ void GroupBy::Execute()
 	outPipe->Insert(outRecord);
 
 	outPipe->ShutDown();
+	cout << "Done GroupBy" << endl;
 }
 
 void GroupBy::WaitUntilDone()

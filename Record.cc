@@ -560,3 +560,8 @@ int Record::GetSize()
 {
 	return ((int *)bits)[0];
 }
+
+int Record::GetNumAtts()
+{
+	return ((((int *)bits)[1]) / sizeof(int)) - 1;
+}

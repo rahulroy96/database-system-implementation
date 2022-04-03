@@ -229,7 +229,7 @@ int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
 
         // If query order has some attributes do binary search to find the
         // page which might have the record that matches cnf
-        if (querySortOrder->GetNumAttrs())
+        if (querySortOrder->GetNumAtts())
         {
             off_t left = 0;
             off_t right = file->GetLength() - 2;
@@ -263,7 +263,7 @@ int SortedFile::GetNext(Record &fetchme, CNF &cnf, Record &literal)
 
         // If the literal record is greater than the fetched
         // record in query order return 0
-        if (querySortOrder->GetNumAttrs() &&
+        if (querySortOrder->GetNumAtts() &&
             comparisonEngine->Compare(&fetchme, querySortOrder, &literal, queryLiteralOrder) > 0)
             return 0;
     }
