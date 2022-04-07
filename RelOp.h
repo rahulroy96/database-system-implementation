@@ -17,11 +17,11 @@ public:
 	virtual void Use_n_Pages(int n) = 0;
 };
 
-class ThreadHelper
-{
-	static void *EntryPoint(void *arg);
-	virtual void Execute() = 0;
-};
+// class ThreadHelper
+// {
+// 	static void *EntryPoint(void *arg);
+// 	virtual void Execute() = 0;
+// };
 
 class SelectFile : public RelationalOp
 {

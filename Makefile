@@ -18,8 +18,8 @@ test_bigq.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o D
 test_heap.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o HeapFile.o SortedFile.o y.tab.o lex.yy.o test_heap.o 
 	$(CC) -o test_heap.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o HeapFile.o SortedFile.o y.tab.o lex.yy.o test_heap.o -ll -lpthread
 
-Gtest.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o HeapFile.o SortedFile.o BigQ.o y.tab.o lex.yy.o Gtest.o Pipe.o 
-	$(CC) -o Gtest.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o HeapFile.o SortedFile.o BigQ.o y.tab.o lex.yy.o Gtest.o Pipe.o -ll -lgtest
+Gtest.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o HeapFile.o SortedFile.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o  Gtest.o Pipe.o 
+	$(CC) -o Gtest.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o HeapFile.o SortedFile.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o Gtest.o Pipe.o -ll -lgtest
 
 main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o -ll

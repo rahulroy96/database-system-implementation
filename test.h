@@ -146,6 +146,7 @@ void get_sort_order(char *input, Schema *left, OrderMaker &sortorder)
 	CNF sort_pred;
 	sort_pred.GrowFromParseTree(final, left, literal); // constructs CNF predicate
 	sort_pred.GetSortOrders(sortorder);
+	close_lexical_parser();
 }
 
 void get_cnf(char *input, Schema *left, CNF &cnf_pred, Record &literal)

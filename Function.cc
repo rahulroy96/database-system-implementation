@@ -252,7 +252,6 @@ Type Function ::Apply(Record &toMe, int &intResult, double &doubleResult)
 	// function
 	double stack[MAX_DEPTH];
 	double *lastPos = stack;
-	// cout << "reached" << endl;
 	char *bits = toMe.bits;
 
 	for (int i = 0; i < numOps; i++)
