@@ -4,6 +4,8 @@
 #include "BigQ.h"
 #include "RelOp.h"
 #include "Record.h"
+#include "Statistics.h"
+#include <math.h>
 using ::testing::MatchesRegex;
 
 extern "C"
@@ -14,6 +16,7 @@ extern "C"
     void close_lexical_parser();           // defined in lex.yy.c
     void init_lexical_parser_func(char *); // defined in lex.yyfunc.c (from Lexerfunc.l)
     void close_lexical_parser_func();      // defined in lex.yyfunc.c
+    struct YY_BUFFER_STATE *yy_scan_string(const char *);
 }
 extern struct AndList *final;
 extern struct FuncOperator *finalfunc;
@@ -416,6 +419,97 @@ TEST(RelOps, JoinPositive)
     dbf_ps.Close();
     dbf_s.Close();
     ASSERT_TRUE(cnt == 1);
+}
+
+TEST(Statistics, JoinEstimatePositive)
+{
+    Statistics s;
+    char *relName[] = {"supplier", "partsupp"};
+
+    s.AddRel(relName[0], 10000);
+    s.AddAtt(relName[0], "s_suppkey", 10000);
+
+    s.AddRel(relName[1], 800000);
+    s.AddAtt(relName[1], "ps_suppkey", 10000);
+
+    char *cnf = "(s_suppkey = ps_suppkey)";
+
+    yy_scan_string(cnf);
+    yyparse();
+
+    double result = s.Estimate(final, relName, 2);
+    ASSERT_TRUE(fabs(result - 800000) < 0.1);
+}
+
+TEST(Statistics, JoinEstimatePositive2)
+{
+    Statistics s;
+    char *relName[] = {"part", "partsupp"};
+    s.AddRel(relName[0], 200000);
+    s.AddAtt(relName[0], "p_partkey", 200000);
+    s.AddAtt(relName[0], "p_size", 50);
+
+    s.AddRel(relName[1], 800000);
+    s.AddAtt(relName[1], "ps_partkey", 200000);
+
+    char *cnf = "(p_partkey=ps_partkey) AND (p_size =3 OR p_size=6 OR p_size =19)";
+
+    yy_scan_string(cnf);
+    yyparse();
+
+    double result = s.Estimate(final, relName, 2);
+    ASSERT_TRUE(fabs(result - 48000) < 0.1);
+}
+
+TEST(Statistics, JoinEstimatePositive3)
+{
+    Statistics s;
+    char *relName[] = {"part", "lineitem"};
+    s.AddRel(relName[0], 200000);
+    s.AddAtt(relName[0], "p_partkey", 200000);
+    s.AddAtt(relName[0], "p_container", 40);
+
+    s.AddRel(relName[1], 6001215);
+    s.AddAtt(relName[1], "l_partkey", 200000);
+    s.AddAtt(relName[1], "l_shipinstruct", 4);
+    s.AddAtt(relName[1], "l_shipmode", 7);
+
+    char *cnf = "(l_partkey = p_partkey) AND (l_shipmode = 'AIR' OR l_shipmode = 'AIR REG') AND (p_container ='SM BOX' OR p_container = 'SM PACK')  AND (l_shipinstruct = 'DELIVER IN PERSON')";
+
+    yy_scan_string(cnf);
+    yyparse();
+
+    double result = s.Estimate(final, relName, 2);
+    ASSERT_TRUE(fabs(result - 21432.9) < 0.1);
+}
+
+TEST(Statistics, ReadEmptyPositive)
+{
+    Statistics s;
+    s.Read("Statistics.txt");
+
+    FILE *f = fopen("Statistics.txt", "r");
+    ASSERT_TRUE(f != nullptr);
+}
+
+TEST(RelationStats, SetRelNamePositive)
+{
+    RelationStats relStats;
+
+    char *relName = "part";
+    relStats.SetName(relName);
+
+    ASSERT_EQ(relStats.GetName(), relName);
+}
+
+TEST(RelationStats, SetNumTuplesPositive)
+{
+    RelationStats relStats;
+
+    int numTuples = 10000;
+    relStats.SetNumTuples(10000);
+
+    ASSERT_EQ(relStats.GetNumTuples(), 10000);
 }
 
 int main(int argc, char **argv)

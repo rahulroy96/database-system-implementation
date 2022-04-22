@@ -62,14 +62,14 @@ void setup (const char *catalog_path, const char *dbfile_dir, const char *tpch_d
 	cout << " heap files dir: \t" << dbfile_dir << endl;
 	cout << " \n\n";
 
-	s = new relation (supplier, new Schema (catalog_path, supplier), dbfile_dir);
-	ps = new relation (partsupp, new Schema (catalog_path, partsupp), dbfile_dir);
-	p = new relation (part, new Schema (catalog_path, part), dbfile_dir);
-	n = new relation (nation, new Schema (catalog_path, nation), dbfile_dir);
-	li = new relation (lineitem, new Schema (catalog_path, lineitem), dbfile_dir);
-	r = new relation (region, new Schema (catalog_path, region), dbfile_dir);
-	o = new relation (orders, new Schema (catalog_path, orders), dbfile_dir);
-	c = new relation (customer, new Schema (catalog_path, customer), dbfile_dir);
+	s = new relation (supplier, new Schema ((char *)catalog_path, "supplier"), dbfile_dir);
+	ps = new relation (partsupp, new Schema ((char *)catalog_path, "partsupp"), dbfile_dir);
+	p = new relation (part, new Schema ((char *)catalog_path, "part"), dbfile_dir);
+	n = new relation (nation, new Schema ((char *)catalog_path, "nation"), dbfile_dir);
+	li = new relation (lineitem, new Schema ((char *)catalog_path, "lineitem"), dbfile_dir);
+	r = new relation (region, new Schema ((char *)catalog_path, "region"), dbfile_dir);
+	o = new relation (orders, new Schema ((char *)catalog_path, "orders"), dbfile_dir);
+	c = new relation (customer, new Schema ((char *)catalog_path, "customer"), dbfile_dir);
 }
 
 void cleanup () {
